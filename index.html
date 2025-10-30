@@ -48,6 +48,18 @@
             border-radius: 5px;
             margin-top: 1rem;
         }
+        #prompt-area { margin: 1.5rem 0; }
+        #positive-prompt {
+            width: 95%;
+            height: 60px;
+            background-color: var(--secondary-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            padding: 10px;
+            font-family: var(--font-family);
+            resize: vertical;
+        }
         #generate-btn {
             background-color: var(--accent-color);
             color: #fff;
@@ -91,12 +103,17 @@
 
     <div class="container">
         <h1>AI 图像动画生成器</h1>
-        <p>上传一张图片，让 AI 为它注入生命！</p>
+        <p>上传一张图片，输入您期望的画面动态效果！</p>
 
         <div id="upload-area">
             <p>点击或拖拽图片到这里</p>
             <input type="file" id="image-input" accept="image/*" class="hidden">
             <img id="image-preview" class="hidden" alt="图片预览">
+        </div>
+
+        <div id="prompt-area">
+            <label for="positive-prompt" style="display: block; margin-bottom: 0.5rem;">正面提示词 (描述您希望的动态效果):</label>
+            <textarea id="positive-prompt" placeholder="例如：头发在微风中飘动, 眼睛眨了一下, 微笑..."></textarea>
         </div>
 
         <button id="generate-btn" disabled>请先上传图片</button>
@@ -130,6 +147,7 @@ const statusText = document.getElementById('status-text');
 const resultArea = document.getElementById('result-area');
 const resultVideo = document.getElementById('result-video');
 const downloadLink = document.getElementById('download-link');
+const positivePromptInput = document.getElementById('positive-prompt');
 
 let selectedFile = null;
 let pollingInterval = null;
@@ -157,16 +175,23 @@ generateBtn.addEventListener('click', async () => {
         return;
     }
     
+    const promptText = positivePromptInput.value;
+    if (!promptText) {
+        alert("请输入正面提示词！");
+        return;
+    }
+
     setUIState('loading', "正在提交任务...");
 
     const formData = new FormData();
     formData.append('image', selectedFile);
+    formData.append('positive_prompt', promptText);
 
     try {
         const startResponse = await fetch(`${API_BASE_URL}/start-task/`, {
             method: 'POST',
             body: formData,
-            credentials: 'include' // 【【【最终决战修改 1/2：提交任务时，带上所有证件！】】】
+            credentials: 'include'
         });
 
         if (!startResponse.ok) {
@@ -194,7 +219,7 @@ function startPolling(taskId) {
     pollingInterval = setInterval(async () => {
         try {
             const statusResponse = await fetch(`${API_BASE_URL}/check-status/${taskId}`, {
-                credentials: 'include' // 【【【最终决战修改 2/2：每次查询状态时，都带上所有证件！】】】
+                credentials: 'include'
             });
             
             if (!statusResponse.ok) {
