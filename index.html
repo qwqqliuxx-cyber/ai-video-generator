@@ -115,7 +115,7 @@
         <footer>© 2025 AI 动画工作室</footer>
     </div>
 
-    <script>
+<script>
 // --- 1. 关键配置 (根据彩排或部署模式选择) ---
 // const API_BASE_URL = "http://127.0.0.1:8000/api"; // (彩排模式)
 const API_BASE_URL = "https://florally-nondenunciating-leroy.ngrok-free.dev/api"; // (部署模式)
@@ -147,9 +147,6 @@ imageInput.addEventListener('change', () => {
             imagePreview.classList.remove('hidden');
         };
         reader.readAsDataURL(file);
-        generateBtn.disabled = false;
-        generateBtn.textContent = "开始生成";
-        // 重置结果区域
         setUIState('idle'); 
     }
 });
@@ -166,10 +163,10 @@ generateBtn.addEventListener('click', async () => {
     formData.append('image', selectedFile);
 
     try {
-        // 第一步：提交任务，获取 task_id
         const startResponse = await fetch(`${API_BASE_URL}/start-task/`, {
             method: 'POST',
             body: formData,
+            credentials: 'include' // 【【【最终决战修改 1/2：提交任务时，带上所有证件！】】】
         });
 
         if (!startResponse.ok) {
@@ -180,7 +177,6 @@ generateBtn.addEventListener('click', async () => {
         const startData = await startResponse.json();
         const taskId = startData.task_id;
 
-        // 第二步：开始轮询任务状态
         setUIState('loading', "任务已提交，AI开始创作 (0%)...");
         startPolling(taskId);
 
@@ -193,15 +189,20 @@ generateBtn.addEventListener('click', async () => {
 
 function startPolling(taskId) {
     let progress = 0;
-    // 清除上一次可能存在的轮询
     if (pollingInterval) clearInterval(pollingInterval);
 
     pollingInterval = setInterval(async () => {
         try {
-            const statusResponse = await fetch(`${API_BASE_URL}/check-status/${taskId}`);
+            const statusResponse = await fetch(`${API_BASE_URL}/check-status/${taskId}`, {
+                credentials: 'include' // 【【【最终决战修改 2/2：每次查询状态时，都带上所有证件！】】】
+            });
             
             if (!statusResponse.ok) {
-                 throw new Error('查询服务器状态失败。');
+                const errorText = await statusResponse.text();
+                if (errorText.includes("<!DOCTYPE html>")) {
+                    throw new Error("查询失败，请手动访问一次后端 ngrok 地址进行授权，然后再试。");
+                }
+                 throw new Error(`查询服务器状态失败 (状态码: ${statusResponse.status})。`);
             }
             
             const statusData = await statusResponse.json();
@@ -219,8 +220,7 @@ function startPolling(taskId) {
                 clearInterval(pollingInterval);
                 throw new Error(statusData.error || 'AI 引擎处理失败。');
             } else {
-                // 模拟一个缓慢增长的进度条
-                progress = Math.min(progress + 2, 98);
+                progress = Math.min(progress + 5, 98);
                 setUIState('loading', `任务处理中 (${progress}%)...`);
             }
         } catch (error) {
@@ -229,7 +229,7 @@ function startPolling(taskId) {
             alert(`查询状态时出错: ${error.message}`);
             setUIState('idle');
         }
-    }, 5000); // 每5秒查询一次，减少请求频率
+    }, 3000);
 }
 
 // --- 4. 辅助函数 ---
@@ -250,7 +250,7 @@ function setUIState(state, message = "") {
         generateBtn.disabled = false;
     }
 }
-    </script>
+</script>
 
 </body>
 </html>
