@@ -39,7 +39,7 @@
             padding: 2rem;
             margin: 1.5rem 0;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color: 0.3s;
         }
         #upload-area:hover { background-color: var(--secondary-color); }
         #image-preview {
@@ -92,7 +92,7 @@
             padding: 0.8rem 1.5rem;
             border-radius: 50px;
             text-decoration: none;
-            transition: background-color 0.3s;
+            transition: background-color: 0.3s;
         }
         #download-link:hover { background-color: #16213e; }
         .hidden { display: none; }
@@ -133,9 +133,8 @@
     </div>
 
 <script>
-// --- 1. 关键配置 (根据彩排或部署模式选择) ---
-// const API_BASE_URL = "http://127.0.0.1:8000/api"; // (彩排模式)
-const API_BASE_URL = "https://api.aivideo.cyou"; // (部署模式)
+// --- 1. 关键配置 (最终修正版) ---
+const API_BASE_URL = "https://api.aivideo.cyou/api";
 
 // --- 2. 获取页面元素 ---
 const uploadArea = document.getElementById('upload-area');
